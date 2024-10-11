@@ -1,0 +1,56 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int       @id @default(autoincrement())
+  email      String    @unique
+  username   String    @db.VarChar(50)
+  password   String
+  isadmin    Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  // user can be in one chat or more
+  chatiIds String[]
+  chats      Chat[] 
+  // user can send many messages
+  messageIds String[]
+  messages   Message[]
+}
+
+model Chat {
+  id          Int       @id @default(autoincrement())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  // Chat may contain more than one user
+  userIds String[] 
+  users       User[] 
+  // chat contain many messages
+  messageIds String[]
+  messages    Message[]
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  chatId    Int
+  senderId  Int      @unique
+  text      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  sender User @relation(fields: [senderId], references: [id])
+  // message can be in one caht or more
+  messageIds String[]
+  chats   Chat[]
+}
